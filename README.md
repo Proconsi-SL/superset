@@ -209,6 +209,10 @@ Understanding the Superset Points of View
   </picture>
 </a>
 
+
+
+Importante: los nombres de las etiquetas del menú se cambian en superset/superset/initialization/__init__.py
+
 <!-- Made with [OSS Insight](https://ossinsight.io/) -->
 
 <!-- telemetry/analytics pixel: -->
