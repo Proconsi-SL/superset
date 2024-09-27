@@ -114,6 +114,12 @@ class JsonPo:
                 file.write(dict_ids_traducciones_resto[msg_id]['resto'])
 
     def po_a_json(self, fichero_in_po):
+        """
+        Función que toma un fichero .po traducido y genera un fichero .json con las traducciones. No se incluyen
+        traducciones de plurales, no se sabe el formato que tiene que tener el json en ese caso.
+        :param fichero_in_po:
+        :return:
+        """
         fichero_po = open(fichero_in_po, 'r', encoding='utf-8')
         lineas_po = fichero_po.readlines()
         fichero_po.close()
@@ -160,7 +166,8 @@ class JsonPo:
                 if not es_plural:
                     id_concatenado += esta_linea
                 index_lines += 1
-            # tenemos que coger la traduccion, de momento solo se hace en el caso de no tener plural definido (habria que buscar ejemplos de como incluye el po en un json si es plural)
+            # tenemos que coger la traduccion, de momento solo se hace en el caso de no tener plural definido (habria
+            # que buscar ejemplos de como incluye el po en un json si es plural)
             if not es_plural:
                 lineas_traduccion = [lineas_para_incluir[index].replace('msgstr','')]
                 index += 1
@@ -184,19 +191,26 @@ class JsonPo:
             json.dump(json_traducciones, file, ensure_ascii=False)
 
     def diferencias_po_po(self, fichero_in_po_revisado, fichero_in_po_para_traducir, nombre_json_salida):
+        """
+        Función que compara dos ficheros po y crea un fichero json donde solo se incluyan las sentencias a traducir del
+        segundo que no estén traducidas en el primero.
+        :param fichero_in_po_revisado:
+        :param fichero_in_po_para_traducir:
+        :param nombre_json_salida:
+        :return:
+        """
         fichero_po1 = open(fichero_in_po_revisado, 'r', encoding='utf-8')
         lineas_po1 = fichero_po1.readlines()
         fichero_po1.close()
         lineas_para_revisar = [line.rstrip('\n') for line in lineas_po1]
-        # a partir del segundo msgid, tenemos que coger la linea del msgid y guardarla, para no cogerla en el segundo fichero po
+        # hasta el segundo msgid no haceos nada (por estructura de los .po del superset, el primer msgid es de descripción
         index = 0
         while index < len(lineas_para_revisar) and not lineas_para_revisar[index].startswith('msgid'):
             index += 1
         index += 1
         while index < len(lineas_para_revisar) and not lineas_para_revisar[index].startswith('msgid'):
             index += 1
-        # a partir del segundo msgid, tenemos que coger la linea a traducir (asociada al msgid) y la traduccion (del
-        # msgstr) y añadirlo al json
+        # a partir del segundo msgid, tenemos que coger la linea a traducir (asociada al msgid)
         claves_ya_traducidas = []
         while index < len(lineas_para_revisar):
             # cogemos las lineas asociadas a msgid y generamos el identificador que van a usar
@@ -224,6 +238,9 @@ class JsonPo:
             while index < len(lineas_para_revisar) and not lineas_para_revisar[index].startswith('msgid'):
                 index += 1
 
+        # hacemos el mismo procedimiento pero para obtener las sentencias para traducir que hay asociadas a msgid en el
+        # segundo fichero po, y comparamos que no se haya traducido ya (las que estan en el primero se han ido almacenando
+        # en la estructura claves_ya_introducidas)
         fichero_po2 = open(fichero_in_po_para_traducir, 'r', encoding='utf-8')
         lineas_po2 = fichero_po2.readlines()
         fichero_po2.close()
@@ -260,10 +277,20 @@ class JsonPo:
                 claves_para_traducir.append(id_concatenado)
             while index < len(lineas_para_traducir) and not lineas_para_traducir[index].startswith('msgid'):
                 index += 1
+
+        # guardamos en el json las claves del segundo po que no están en el primero
         with open(nombre_json_salida, 'w', encoding='utf-8') as file:
             json.dump(claves_para_traducir, file, ensure_ascii=False)
 
     def combina_jsons(self, json_principal, json_para_incluir, nombre_json_salida):
+        """
+        Función que combina un primer fichero json con traducciones antiguas revisadas, con un segundo fichero json con
+        traducciones nuevas. Lo almacena ordenado alfabéticamente.
+        :param json_principal:
+        :param json_para_incluir:
+        :param nombre_json_salida:
+        :return:
+        """
         with open(json_principal, "r", encoding='utf-8') as file_in:
             dict_principal = json.load(file_in)
         with open(json_para_incluir, "r", encoding='utf-8') as file_in:
@@ -335,9 +362,9 @@ if __name__ == '__main__':
             print("No has introducido un número correcto de argumentos. Esta opción requiere tres ficheros .po de entrada.")
             sys.exit(1)
         else:
-            # jsonpo.diferencias_po_po(sys.argv[1], sys.argv[3], 'ficheros/claves_para_traducir.json')
-            # jsonpo.combina_jsons(sys.argv[2], 'ficheros/traducciones.json', 'ficheros/json_combinado.json')
-            # jsonpo.traduccion_a_po('ficheros/json_combinado.json', sys.argv[3])
+            jsonpo.diferencias_po_po(sys.argv[1], sys.argv[3], 'ficheros/claves_para_traducir.json')
+            jsonpo.combina_jsons(sys.argv[2], 'ficheros/traducciones.json', 'ficheros/json_combinado.json')
+            jsonpo.traduccion_a_po('ficheros/json_combinado.json', sys.argv[3])
     elif opcion == 6:
         print("Has elegido salir. ¡Hasta luego!")
         sys.exit(0)
