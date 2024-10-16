@@ -21,7 +21,7 @@ El token que necesita el html es de tipo guest token, y se realiza la petición 
 donde "username" se puede cambiar al nombre de usuario que se quiera (mejor que sea único para distintas peticiones) y el "id" se refiere al id que se obtiene en superset en la opción de embeber el dashboard.
 
 *¡¡Importante!!* Para embeber los dashboards hay que proporcionar los dominios desde los que se puede acceder a ellos dentro de superset. Comprobar, al poner un dominio nuevo, que la conexión se realiza efectivamente antes de realizar más cambios.
-La configuración de embebido de un panel en superset se hace en la opción remarcada en la imagen:
+La configuración de embebido de un panel en superset se hace en la opción remarcada en la imagen (Incrustar panel):
 
 ![](images/embeber_panel_1.png)
 
