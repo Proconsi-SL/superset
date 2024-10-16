@@ -8,7 +8,7 @@
   <style>
     iframe {
       width: 100%;
-      height: 50%;
+      height: 100%;
       border: none;
     }
       pretext {
@@ -23,13 +23,28 @@
 
   <div class="pretext">
     <p id="my-superset-container"></p> 
+	<style>
+    iframe {
+      width:device-width;
+      height:95vh;
+      border: none;
+    }
+      pretext {
+        margin-right: 0%;
+        margin-left: 0%;
+		margin-bottom: 0%,
+		margin-top: 0%,
+        font-family: Tahoma;
+      }
+  </style>
 <script>
+
   supersetEmbeddedSdk.embedDashboard(
     { 
-      id: "526b0f7a-8a07-40f8-b84c-52249aee8535", // given by the Superset embedding UI 
+      id: "c7f3341e-96df-461e-9331-615b548d748a", // given by the Superset embedding UI 
       supersetDomain: "http://localhost:8088/",  
       mountPoint: document.getElementById("my-superset-container"),
-      fetchGuestToken: () =>  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InVzZXJuYW1lIjoidTEiLCJmaXJzdF9uYW1lIjoiIiwibGFzdF9uYW1lIjoiIn0sInJlc291cmNlcyI6W3sidHlwZSI6ImRhc2hib2FyZCIsImlkIjoiNTI2YjBmN2EtOGEwNy00MGY4LWI4NGMtNTIyNDlhZWU4NTM1In1dLCJybHNfcnVsZXMiOltdLCJpYXQiOjE3Mjg0NzQ5ODEuNTkzNTk5MywiZXhwIjoxNzI4NDc1MjgxLjU5MzU5OTMsImF1ZCI6Imh0dHA6Ly9zdXBlcnNldDo4MDg4LyIsInR5cGUiOiJndWVzdCJ9.BXA6QxDeXQekow49KSd8gB8x1Oi4H0aYg-w1-SDw_kQ", 
+      fetchGuestToken: () =>  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InVzZXJuYW1lIjoiIiwiZmlyc3RfbmFtZSI6IiIsImxhc3RfbmFtZSI6IiJ9LCJyZXNvdXJjZXMiOlt7InR5cGUiOiJkYXNoYm9hcmQiLCJpZCI6ImM3ZjMzNDFlLTk2ZGYtNDYxZS05MzMxLTYxNWI1NDhkNzQ4YSJ9XSwicmxzX3J1bGVzIjpbXSwiaWF0IjoxNzI5MDc2NjE3LjI4ODc3LCJleHAiOjE3MjkwNzY5MTcuMjg4NzcsImF1ZCI6Imh0dHA6Ly9zdXBlcnNldDo4MDg4LyIsInR5cGUiOiJndWVzdCJ9.Ym2hKHMFMxOr7wwSoVfzJ_7GS6FDz6nAIVnEfSwJteU", 
       dashboardUiConfig: { // dashboard UI config: hideTitle, hideTab, hideChartControls, filters.visible, filters.expanded (optional)
         hideTitle: true,
         hideChartControls: true,
