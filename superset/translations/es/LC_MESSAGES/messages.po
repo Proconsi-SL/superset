@@ -6644,7 +6644,7 @@ msgstr "Incrustar código"
 #: superset-frontend/src/dashboard/components/Header/HeaderActionsDropdown/index.jsx:328
 #, fuzzy
 msgid "Embed dashboard"
-msgstr "Panel de control in"
+msgstr "Incrustar panel"
 
 #: superset-frontend/src/dashboard/components/EmbeddedModal/index.tsx:108
 msgid "Embedding deactivated."
