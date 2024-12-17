@@ -20,12 +20,14 @@ El token que necesita el html es de tipo guest token, y se realiza la petición 
 ```
 donde "username" se puede cambiar al nombre de usuario que se quiera (mejor que sea único para distintas peticiones) y el "id" se refiere al id que se obtiene en superset en la opción de embeber el dashboard.
 
-*¡¡Importante!!* Para embeber los dashboards hay que proporcionar los dominios desde los que se puede acceder a ellos dentro de superset. Comprobar, al poner un dominio nuevo, que la conexión se realiza efectivamente antes de realizar más cambios.
+*¡¡Importante!!* Para embeber los dashboards hay que proporcionar los dominios desde los que se puede acceder a ellos dentro de superset. Comprobar, al poner un dominio nuevo, que la conexión se realiza efectivamente antes de realizar más cambios. Si no se pone nada, se accede desde cualquier dominio.
 La configuración de embebido de un panel en superset se hace en la opción remarcada en la imagen (Incrustar panel):
 
 ![](images/embeber_panel_1.png)
 
 Además, hay que cambiar configuraciones del config.py. Para dejar todos los cambios de parámetros acotados, se han añadido a superset_config.py en una sección acotada, para que se puedan eliminar si en algún momento es necesario. El fichero superset_config.py está en superset/docker/pythopath_dev. Además, en config.py se han cambiado, dentro de la sección DEFAULT_FEATURE_FLAGS las siguientes: "EMBEDDED_SUPERSET": True, "ALERT_REPORTS": True, "DASHBOARD_RBAC": True
+
+Tienes que crear un rol en superset con permisos suficientes para ver el panel que se llame conexion_token (es como se ha llamado en superset_config.py el rol de guest token).
 
 # Uso de peticiones html para obtener los tokens.
 En la carpeta bruno se han dejado los dos archivos con las peticiones html para obtener los tokens en vez de usar el navegador para acceder a la api según la sección anterior. Hay un readme expliactivo de cómo usarlas.
