@@ -65,6 +65,7 @@ CACHE_CONFIG = {
     "CACHE_TYPE": "RedisCache",
     "CACHE_DEFAULT_TIMEOUT": 300,
     "CACHE_KEY_PREFIX": "superset_",
+    "CACHE_KEY_PREFIX": "superset_",
     "CACHE_REDIS_HOST": REDIS_HOST,
     "CACHE_REDIS_PORT": REDIS_PORT,
     "CACHE_REDIS_DB": REDIS_RESULTS_DB,
@@ -98,6 +99,7 @@ class CeleryConfig:
 CELERY_CONFIG = CeleryConfig
 
 FEATURE_FLAGS = {"ALERT_REPORTS": True}
+
 ALERT_REPORTS_NOTIFICATION_DRY_RUN = True
 WEBDRIVER_BASEURL = "http://superset:8088/"  # When using docker compose baseurl should be http://superset_app:8088/
 # The base URL for the email report hyperlinks.
@@ -133,5 +135,39 @@ OVERRIDE_HTTP_HEADERS = {'X-Frame-Options': 'ALLOWALL'}
 TALISMAN_ENABLED = False
 
 
+FEATURE_FLAGS = {"ALERT_REPORTS": True, "EMBEDDED_SUPERSET": True, "ENABLE_TEMPLATE_PROCESSING": True,}
+
+SESSION_COOKIE_SECURE = True # Prevent cookie from being transmitted over non-tls?
+
+ENABLE_CORS = True
+CORS_OPTIONS = {
+'supports_credentials': True,
+'origins': ['"https://localhost:8088"']
+}
 
 ##### Fin de cambios necesarios para embeber paneles
+
+# produccion
+SECRET_KEY="80iyQjAC1f"
+#WEBDRIVER_BASEURL = "https://smart.proconsi.com/superset/"  # When using docker compose baseurl should be http://superset_app:8088/
+"""
+class PrefixMiddleware(object):
+
+
+    def __init__(self, app, prefix='superset'):
+        self.app = app
+        self.prefix = prefix
+
+
+    def __call__(self, environ, start_response):
+        if environ['PATH_INFO'].startswith(self.prefix):
+            environ['PATH_INFO'] = environ['PATH_INFO'][len(self.prefix):]
+            environ['SCRIPT_NAME'] = self.prefix
+            return self.app(environ, start_response)
+        else:
+            start_response('404', [('Content-Type', 'text/plain')])
+            return ["This url does not belong to the app.".encode()]
+
+
+ADDITIONAL_MIDDLEWARE = [PrefixMiddleware, ]
+"""
