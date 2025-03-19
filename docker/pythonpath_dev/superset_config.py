@@ -141,8 +141,8 @@ SESSION_COOKIE_SECURE = True # Prevent cookie from being transmitted over non-tl
 
 ENABLE_CORS = True
 CORS_OPTIONS = {
-'supports_credentials': True,
-'origins': ['"https://localhost:8088"']
+'supports_credentials': True
+#'origins': ['"https://localhost:8088"']
 }
 
 ##### Fin de cambios necesarios para embeber paneles
