@@ -60,6 +60,8 @@ services:
       - "127.0.0.1:6379:6379"
     volumes:
       - redis:/data
+    networks:
+     - superset_net
 
   db:
     env_file:
@@ -75,6 +77,8 @@ services:
     volumes:
       - db_home:/var/lib/postgresql/data
       - ./docker/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    networks:
+     - superset_net
 
   superset:
     env_file:
@@ -96,6 +100,8 @@ services:
     volumes: *superset-volumes
     environment:
       CYPRESS_CONFIG: "${CYPRESS_CONFIG:-}"
+    networks:
+     - superset_net
 
   superset-websocket:
     container_name: superset_websocket
@@ -129,6 +135,8 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_SSL=false
+    networks:
+     - superset_net
 
   superset-init:
     build:
@@ -147,6 +155,8 @@ services:
       CYPRESS_CONFIG: "${CYPRESS_CONFIG:-}"
     healthcheck:
       disable: true
+    networks:
+     - superset_net
 
   superset-node:
     build:
@@ -171,6 +181,8 @@ services:
         required: false
     depends_on: *superset-depends-on
     volumes: *superset-volumes
+    networks:
+     - superset_net
 
   superset-worker:
     build:
@@ -195,6 +207,8 @@ services:
     # Bump memory limit if processing selenium / thumbnails on superset-worker
     # mem_limit: 2038m
     # mem_reservation: 128M
+    networks:
+     - superset_net
 
   superset-worker-beat:
     build:
@@ -212,6 +226,8 @@ services:
     volumes: *superset-volumes
     healthcheck:
       disable: true
+    networks:
+     - superset_net
 
   superset-tests-worker:
     build:
@@ -238,6 +254,9 @@ services:
     volumes: *superset-volumes
     healthcheck:
       test: ["CMD-SHELL", "celery inspect ping -A superset.tasks.celery_app:app -d celery@$$HOSTNAME"]
+      
+    networks:
+     - superset_net
 
 volumes:
   superset_home:
@@ -246,3 +265,8 @@ volumes:
     external: false
   redis:
     external: false
+
+
+networks:
+  superset_net:
+    external:true
