@@ -127,6 +127,17 @@ services:
     healthcheck:
       disable: true
 
+
+  autenticacion:
+    container_name: autenticacion
+    build:
+      context: .
+      dockerfile: ./autenticacion/Dockerfile
+    ports:
+      - "5996:5996"
+    restart: unless-stopped
+    depends_on: *superset-depends-on
+
 volumes:
   superset_home:
     external: false

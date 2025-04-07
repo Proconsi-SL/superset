@@ -179,7 +179,59 @@ SUPERSET_DASHBOARD_PERIODICAL_REFRESH_LIMIT = 0
 SUPERSET_DASHBOARD_PERIODICAL_REFRESH_WARNING_MESSAGE = None
 
 SUPERSET_DASHBOARD_POSITION_DATA_LIMIT = 65535
+
+
 CUSTOM_SECURITY_MANAGER = None
+"""
+######## ALICIA ##############
+import jwt  # PyJWT
+from flask import request, g
+from flask_appbuilder.security.manager import AUTH_DB
+from superset.security import SupersetSecurityManager
+from werkzeug.exceptions import Unauthorized
+
+AUTH_TYPE = AUTH_DB
+ENABLE_JWT_AUTH = True
+JWT_SECRET_KEY = "80iyQjAC1f"  # Reemplazalo por el usado en Superset
+JWT_ALGORITHM = "HS256"
+
+class CustomJWTAuthSecurityManager(SupersetSecurityManager):
+    def get_user(self):
+        auth_header = request.headers.get("Authorization", "")
+        print(auth_header)
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return super().get_user()
+
+        token = auth_header.split(" ")[1].strip()
+        print(token)
+
+        try:
+            decoded = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+            print(decoded)
+            user_id = decoded.get("sub")
+            print(user_id)
+            if not user_id:
+                raise Unauthorized("El token no contiene 'sub'")
+
+            user = self.get_user_by_id(user_id)
+            print(user)
+            if not user:
+                raise Unauthorized(f"Usuario con ID {user_id} no encontrado")
+
+            # Esta función es lo que Flask AppBuilder espera internamente
+            self.appbuilder.sm._set_user(user)
+
+            return user
+
+        except Exception as ex:
+            raise Unauthorized(f"Token inválido: {ex}")
+
+CUSTOM_SECURITY_MANAGER = CustomJWTAuthSecurityManager
+FAB_SECURITY_MANAGER_CLASS = CustomJWTAuthSecurityManager
+
+##### \\ALICIA ###
+"""
+
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 # ---------------------------------------------------------
 
@@ -1691,7 +1743,7 @@ GLOBAL_ASYNC_QUERIES_JWT_COOKIE_SAMESITE: None | (Literal["None", "Lax", "Strict
     None
 )
 GLOBAL_ASYNC_QUERIES_JWT_COOKIE_DOMAIN = None
-GLOBAL_ASYNC_QUERIES_JWT_SECRET = "test-secret-change-me"
+GLOBAL_ASYNC_QUERIES_JWT_SECRET = "80iyQjAC1f"
 GLOBAL_ASYNC_QUERIES_TRANSPORT: Literal["polling", "ws"] = "polling"
 GLOBAL_ASYNC_QUERIES_POLLING_DELAY = int(
     timedelta(milliseconds=500).total_seconds() * 1000
@@ -1722,7 +1774,7 @@ GLOBAL_ASYNC_QUERIES_CACHE_BACKEND = {
 
 # Embedded config options
 GUEST_ROLE_NAME = "Public"
-GUEST_TOKEN_JWT_SECRET = "test-guest-secret-change-me"
+GUEST_TOKEN_JWT_SECRET = "80iyQjAC1f"
 GUEST_TOKEN_JWT_ALGO = "HS256"
 GUEST_TOKEN_HEADER_NAME = "X-GuestToken"
 GUEST_TOKEN_JWT_EXP_SECONDS = 300  # 5 minutes

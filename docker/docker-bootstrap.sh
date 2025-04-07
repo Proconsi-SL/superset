@@ -54,6 +54,10 @@ case "${1}" in
     echo "Starting web app..."
     /usr/bin/run-server.sh
     ;;
+#  app-gunicorn)
+#  echo "🔒 Starting web app with custom_app.py..."
+#  /app/docker/run-gunicorn-custom.sh
+#  ;;
   *)
     echo "Unknown Operation!!!"
     ;;

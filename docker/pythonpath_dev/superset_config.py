@@ -98,10 +98,10 @@ class CeleryConfig:
 
 CELERY_CONFIG = CeleryConfig
 
-FEATURE_FLAGS = {"ALERT_REPORTS": True}
+FEATURE_FLAGS = { "ALERT_REPORTS": True,}
 
 ALERT_REPORTS_NOTIFICATION_DRY_RUN = True
-WEBDRIVER_BASEURL = "http://superset:8088/"  # When using docker compose baseurl should be http://superset_app:8088/
+WEBDRIVER_BASEURL = "http://superset_app:8088/"  # When using docker compose baseurl should be http://superset_app:8088/
 # The base URL for the email report hyperlinks.
 WEBDRIVER_BASEURL_USER_FRIENDLY = WEBDRIVER_BASEURL
 SQLLAB_CTAS_NO_LIMIT = True
@@ -123,10 +123,10 @@ except ImportError:
     
 
 #### Cambios necesarios para embeber paneles
-WTF_CSRF_ENABLED = False
+WTF_CSRF_ENABLED = True
 
 GUEST_ROLE_NAME = "conexion_token"
-GUEST_TOKEN_JWT_SECRET = "test-guest-secret-change-me"
+GUEST_TOKEN_JWT_SECRET = "80iyQjAC1f"
 GUEST_TOKEN_JWT_ALGO = "HS256"
 GUEST_TOKEN_HEADER_NAME = "X-GuestToken"
 GUEST_TOKEN_JWT_EXP_SECONDS = 300  # 5 minutes
@@ -134,10 +134,10 @@ GUEST_TOKEN_JWT_EXP_SECONDS = 300  # 5 minutes
 OVERRIDE_HTTP_HEADERS = {'X-Frame-Options': 'ALLOWALL'}
 TALISMAN_ENABLED = False
 
-
 FEATURE_FLAGS = {"ALERT_REPORTS": True, "EMBEDDED_SUPERSET": True, "ENABLE_TEMPLATE_PROCESSING": True,}
 
-SESSION_COOKIE_SECURE = True # Prevent cookie from being transmitted over non-tls?
+
+SESSION_COOKIE_SECURE = True
 
 ENABLE_CORS = True
 CORS_OPTIONS = {
@@ -145,29 +145,84 @@ CORS_OPTIONS = {
 #'origins': ['"https://localhost:8088"']
 }
 
+FAB_ADD_SECURITY_API = True
 ##### Fin de cambios necesarios para embeber paneles
 
 # produccion
 SECRET_KEY="80iyQjAC1f"
-#WEBDRIVER_BASEURL = "https://smart.proconsi.com/superset/"  # When using docker compose baseurl should be http://superset_app:8088/
+
+
 """
-class PrefixMiddleware(object):
+class LoginPrefixMiddleware(object):
 
 
-    def __init__(self, app, prefix='superset'):
+    def __init__(self, app):
         self.app = app
-        self.prefix = prefix
 
 
     def __call__(self, environ, start_response):
-        if environ['PATH_INFO'].startswith(self.prefix):
-            environ['PATH_INFO'] = environ['PATH_INFO'][len(self.prefix):]
-            environ['SCRIPT_NAME'] = self.prefix
-            return self.app(environ, start_response)
-        else:
-            start_response('404', [('Content-Type', 'text/plain')])
-            return ["This url does not belong to the app.".encode()]
+        path = environ.get("PATH_INFO", "")
+
+        if path.startswith("/superset/login"):
+            environ["PATH_INFO"] = path.replace("/superset", "", 1)
+        return self.app(environ, start_response)
 
 
-ADDITIONAL_MIDDLEWARE = [PrefixMiddleware, ]
+ADDITIONAL_MIDDLEWARE = [LoginPrefixMiddleware]
+
+
+
+ROW_LEVEL_SECURITY= True
+RLS_IN_SQLLAB = True
 """
+
+# autenticacion api
+
+# import jwt  # PyJWT
+# from flask import request
+# from superset.security.manager import SupersetSecurityManager
+# from werkzeug.exceptions import Unauthorized
+#
+# AUTH_TYPE = 'jwt'
+# AUTH_JWT_EXPIRATION_TIME = 3600
+# ENABLE_JWT_AUTH = True
+# JWT_SECRET_KEY = "80iyQjAC1f"  # Reemplazalo por el usado en Superset
+# JWT_ALGORITHM = "HS256"
+#
+# class CustomJWTAuthSecurityManager(SupersetSecurityManager):
+#     def get_user(self):
+#         auth_header = request.headers.get("Authorization", "")
+#         print(auth_header)
+#         if not auth_header or not auth_header.startswith("Bearer "):
+#             return super().get_user()
+#
+#         token = auth_header.split(" ")[1].strip()
+#         print(token)
+#
+#         try:
+#             decoded = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+#             print(decoded)
+#             user_id = decoded.get("sub")
+#             print(user_id)
+#             if not user_id:
+#                 raise Unauthorized("El token no contiene 'sub'")
+#
+#             user = self.get_user_by_id(user_id)
+#             print(user)
+#             if not user:
+#                 raise Unauthorized(f"Usuario con ID {user_id} no encontrado")
+#
+#             # Esta función es lo que Flask AppBuilder espera internamente
+#             self._set_user(user)
+#
+#             return user
+#
+#         except Exception as ex:
+#             raise Unauthorized(f"Token inválido: {ex}")
+#
+# CUSTOM_SECURITY_MANAGER = CustomJWTAuthSecurityManager
+# # #FAB_SECURITY_MANAGER_CLASS = CustomJWTAuthSecurityManager
+
+#For logging
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = False
