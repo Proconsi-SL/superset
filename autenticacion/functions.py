@@ -1,6 +1,20 @@
+# -*- coding: utf-8 -*-
+"""
+Fichero
+
+Descripción
+
+@Empresa			: Proconsi S.L.
+@Programador        : Alicia Merayo
+@Fecha			    : 07/04/2025
+@Fecha ult.modif.   : 07/04/2025 - Alicia Merayo
+@Aplicación		    : superset
+"""
+
 import httpx
 from inputs import LoginRequest, GuestTokenRequest
 import json
+import requests
 
 BASE_URL = "http://superset_app:8088"  # Cambia esto por la URL real
 
@@ -9,6 +23,24 @@ with open("keys.json") as f:
 
 async def get_guest_token(request: GuestTokenRequest):
 
+    """
+    Función para obtener el token de invitado para un dashboard embebido en Superset. Se
+    comprueba primero que el usuario y contraseña son correctos, y luego se obtiene el
+    token CSRF del usuario.
+
+    Se obtiene el id interno del usuario y sus roles: para esto es necesario pasar el
+    cliente de httpx con el que se obtuvo el csrf token porque es necesaria la cookie
+    de sesión.
+
+    Después se comprueba que el dashboard embebido existe y que
+    el usuario tiene acceso a él. Para obtener el dashboard con su id interno hay que
+    usar requests en vez de httpx porque no se puede pasar la cookie de sesión para
+    esa petición.
+
+    Finalmente, se obtiene el token de invitado. Para ello es necesaria la cookie de
+    sesión del superusuario y el token CSRF del supertoken, por lo que es necesario usar
+    de nuevo httpx.
+    """
     # primero hay que comprobar que el usuario y contraseña son correctos
     async with httpx.AsyncClient(follow_redirects=True) as client:
         response_login = await check_access(LoginRequest(username=request.username, password=request.password, provider="db", refresh=True), client)
@@ -37,47 +69,56 @@ async def get_guest_token(request: GuestTokenRequest):
                     if not "result" in response_roles_usuario:
                         raise RuntimeError("Error al obtener los roles del usuario")
                     else:
-                        response_token_autenticacion = await check_access(LoginRequest(username=keys["conexion_token"]["username"], password=keys["conexion_token"]["password"], provider="db", refresh=True), client)
-                        supertoken_acceso = response_token_autenticacion["access_token"]
-                        # ahora tenemos que comprobar que el id de dashboard embebido que han pasado se corresponde con un dashboard real
-                        response_embedded = await check_embedded_dashboard_id(request.dashboard_id, supertoken_acceso, client)
-                        if not "result" in response_embedded:
-                            raise ValueError("El identificador de panel que has enviado no es válido")
-                        else:
-                            # hay que obtener la informacion del dashboard
-                            internal_dashboard_id = response_embedded["result"]["dashboard_id"]
-                            # hay que obtener la informacion del dashboard que contiene que usuarios y que roles tienen acceso
-                            response_dashboard = await check_dashboard_info(internal_dashboard_id, supertoken_acceso, client)
-                            if not "result" in response_dashboard != 200:
-                                raise RuntimeError("Error al obtener la información del dashboard")
+                        async with httpx.AsyncClient(follow_redirects=True) as client2:
+                            response_token_autenticacion = await check_access(LoginRequest(username=keys["conexion_token"]["username"], password=keys["conexion_token"]["password"], provider="db", refresh=True), client2)
+                            supertoken_acceso = response_token_autenticacion["access_token"]
+                            # ahora tenemos que comprobar que el id de dashboard embebido que han pasado se corresponde con un dashboard real
+                            response_embedded = await check_embedded_dashboard_id(request.dashboard_id, supertoken_acceso, client2)
+                            if not "result" in response_embedded:
+                                raise ValueError("El identificador de panel enviado no es válido")
                             else:
-                                # comprobamos que el usuario tiene acceso al dashboard
-                                grant_guest_token = False
-                                usuarios_dashboard = response_roles_usuario["result"]["owners"]
-                                for usuario in usuarios_dashboard:
-                                    if usuario["id"] == response_info_usuario["result"]["id"]:
-                                        grant_guest_token = True
-                                        break
-                                if not grant_guest_token:
-                                    # si el usuario no tiene acceso al dashboard, comprobamos si algun rol del usuario tiene acceso
-                                    roles_dashboard = response_dashboard["result"]["roles"]
-                                    for rol in roles_dashboard:
-                                        for rol_usuario in response_roles_usuario["result"]["roles"]:
-                                            if rol["name"] == rol_usuario:
-                                                grant_guest_token = True
-                                                break
-                                        if grant_guest_token:
-                                            break
-                                if not grant_guest_token:
-                                    raise ValueError("El usuario no tiene permiso de acceso al panel ni por usuario ni por rol")
+                                # hay que obtener la informacion del dashboard
+                                internal_dashboard_id = response_embedded["result"]["dashboard_id"]
+                                # hay que obtener la informacion del dashboard que contiene que usuarios y que roles tienen acceso
+                                response_dashboard = await check_dashboard_info(internal_dashboard_id, supertoken_acceso, client2)
+                                if not "result" in response_dashboard:
+                                    raise RuntimeError("Error al obtener la información del panel")
                                 else:
-                                    response_guest_token = await obtain_guest_token(GuestTokenRequest.dashboard_id, supertoken_acceso, client)
-                                    if response_guest_token.status_code != 200:
-                                        raise RuntimeError("Error al obtener el token de invitado")
+                                    # comprobamos que el usuario tiene acceso al dashboard
+                                    grant_guest_token = False
+                                    usuarios_dashboard = response_dashboard["result"]["owners"]
+                                    for usuario in usuarios_dashboard:
+                                        if usuario["id"] == response_info_usuario["result"]["id"]:
+                                            grant_guest_token = True
+                                            break
+                                    if not grant_guest_token:
+                                        # si el usuario no tiene acceso al dashboard, comprobamos si algun rol del usuario tiene acceso
+                                        roles_dashboard = response_dashboard["result"]["roles"]
+                                        for rol in roles_dashboard:
+                                            for rol_usuario in response_roles_usuario["result"]["roles"]:
+                                                if rol["name"] == rol_usuario:
+                                                    grant_guest_token = True
+                                                    break
+                                            if grant_guest_token:
+                                                break
+                                    if not grant_guest_token:
+                                        raise ValueError("El usuario no tiene permiso de acceso al panel ni por usuario ni por rol")
                                     else:
-                                        return response_guest_token
+                                        csrf_token_supertoken, headers = await check_csrf(supertoken_acceso, client2)
+                                        if not "result" in csrf_token_supertoken:
+                                            raise RuntimeError("Error al obtener el token CSRF del administrador")
+                                        response_guest_token = await obtain_guest_token(request.dashboard_id, supertoken_acceso, csrf_token_supertoken["result"], client2)
+                                        if "result" in response_guest_token:
+                                            raise RuntimeError("Error al obtener el token de invitado")
+                                        else:
+                                            return response_guest_token
 
 async def get_cookie_from_login(username:str, password:str, token_csrf:str, client:httpx.AsyncClient):
+    """
+    Función para obtener la cookie cifrada del usuario a partir del nombre de usuario y
+    contraseña. Se usa para obtener la cookie de sesión del usuario que se ha logueado.
+    Emula un navegador web para obtener pleno acceso al crud a través de la api.
+    """
     url = f"{BASE_URL}/login/"
 
     headers = {
@@ -98,6 +139,10 @@ async def get_cookie_from_login(username:str, password:str, token_csrf:str, clie
     return response.headers["set-cookie"]
 
 async def check_access(request: LoginRequest, client:httpx.AsyncClient):
+    """
+    Función para comprobar el acceso a la API de Superset. Se usa para obtener el token
+    de acceso del usuario que se ha logueado.
+    """
     url = f"{BASE_URL}/api/v1/security/login"
     headers = {
         "Content-Type": "application/json",
@@ -114,6 +159,9 @@ async def check_access(request: LoginRequest, client:httpx.AsyncClient):
     return response.json()
 
 async def check_embedded_dashboard_id(dashboard_id: str, access_token: str, client:httpx.AsyncClient):
+    """
+    Función para comprobar la información del dashboard embebido
+    """
     url = f"{BASE_URL}/api/v1/embedded_dashboard/{dashboard_id}"
 
     headers = {
@@ -123,10 +171,10 @@ async def check_embedded_dashboard_id(dashboard_id: str, access_token: str, clie
 
     response = await client.get(url, headers = headers)
     response.raise_for_status()
-    print(response.json())
     return response.json()
 
 async def check_user_info(client:httpx.AsyncClient):
+    """ Función para obtener la información interna del usuario logueado"""
     url = f"{BASE_URL}/api/v1/me/"
     headers = {
         "accept": "application/json",
@@ -138,6 +186,7 @@ async def check_user_info(client:httpx.AsyncClient):
 
 
 async def check_user_roles(client:httpx.AsyncClient):
+    """ Función para obtener los roles del usuario logueado"""
     url = f"{BASE_URL}/api/v1/me/roles/"
     headers = {
         "accept": "application/json"
@@ -149,20 +198,25 @@ async def check_user_roles(client:httpx.AsyncClient):
 
 
 async def check_dashboard_info(dashboard_id: str, access_token: str, client:httpx.AsyncClient):
-    url = f"{BASE_URL}/api/v1/dashboard/{dashboard_id}/"
+    """ Función para obtener la información del dashboard mediante su id interno"""
+    url = f"{BASE_URL}/api/v1/dashboard/{dashboard_id}"
     headers = {
         "Authorization": f"Bearer {access_token}",
         "accept": "application/json"
     }
-
-    response = await client.get(url, headers=headers)
+    # se usa requests porque httpx da conflicto con las cookies almacenadas para obtener el dashboard
+    response = requests.get(url, headers=headers)
     response.raise_for_status()
     return response.json()
 
-async def obtain_guest_token(embedded_dashboard_id, access_token, client:httpx.AsyncClient):
-    url = f"{BASE_URL}/api/v1/guest_token"
+async def obtain_guest_token(embedded_dashboard_id, access_token, csrf_token:str,  client:httpx.AsyncClient):
+    """ Función para obtener el token de invitado para un dashboard embebido"""
+    url = f"{BASE_URL}/api/v1/security/guest_token"
     headers = {
-        "Authorization": f"Bearer {access_token}"
+        "accept": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {access_token}",
+        "X-CSRFToken": csrf_token
     }
     json_data = {
       "resources": [
@@ -179,12 +233,12 @@ async def obtain_guest_token(embedded_dashboard_id, access_token, client:httpx.A
       }
     }
 
-    async with httpx.AsyncClient() as client:
-        response = await client.post(url, headers=headers, json=json_data)
-        response.raise_for_status()
-        return response.json()
+    response = await client.post(url, headers=headers, json=json_data)
+    response.raise_for_status()
+    return response.json()
 
 async def check_csrf(access_token: str, client:httpx.AsyncClient):
+    """ Función para obtener el token CSRF del usuario logueado"""
     url = f"{BASE_URL}/api/v1/security/csrf_token/"
     headers = {
         "Authorization": f"Bearer {access_token}",
