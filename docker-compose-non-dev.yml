@@ -39,7 +39,7 @@ services:
   redis:
     image: redis:7
     container_name: superset_cache
-    restart: unless-stopped
+    restart: always
     volumes:
       - redis:/data
 
@@ -51,7 +51,7 @@ services:
         required: false
     image: postgres:15
     container_name: superset_db
-    restart: unless-stopped
+    restart: always
     volumes:
       - db_home:/var/lib/postgresql/data
       - ./docker/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
@@ -67,7 +67,7 @@ services:
     container_name: superset_app
     command: ["/app/docker/docker-bootstrap.sh", "app-gunicorn"]
     user: "root"
-    restart: unless-stopped
+    restart: always
     ports:
       - 8088:8088
     depends_on: *superset-depends-on
@@ -99,7 +99,7 @@ services:
         required: true
       - path: docker/.env-local # optional override
         required: false
-    restart: unless-stopped
+    restart: always
     depends_on: *superset-depends-on
     user: "root"
     volumes: *superset-volumes
@@ -120,7 +120,7 @@ services:
         required: true
       - path: docker/.env-local # optional override
         required: false
-    restart: unless-stopped
+    restart: always
     depends_on: *superset-depends-on
     user: "root"
     volumes: *superset-volumes
@@ -129,13 +129,13 @@ services:
 
 
   autenticacion:
-    container_name: autenticacion
+    container_name: superset_autenticacion_proconsi
     build:
       context: .
       dockerfile: ./autenticacion/Dockerfile
     ports:
       - "5996:5996"
-    restart: unless-stopped
+    restart: always
     depends_on: *superset-depends-on
 
 volumes:

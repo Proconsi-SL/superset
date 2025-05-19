@@ -141,8 +141,10 @@ SESSION_COOKIE_SECURE = True
 
 ENABLE_CORS = True
 CORS_OPTIONS = {
-'supports_credentials': True
-#'origins': ['"https://localhost:8088"']
+'supports_credentials': True,
+'allow_headers': ['*'],
+'resources':['*'],
+'origins': ['*']
 }
 
 FAB_ADD_SECURITY_API = True
@@ -226,3 +228,40 @@ RLS_IN_SQLLAB = True
 #For logging
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = False
+"""
+TALISMAN_ENABLED=True
+TALISMAN_CONFIG = {
+    "content_security_policy": {
+        "base-uri": ["'self'"],
+        "default-src": ["'self'"],
+        "img-src": [
+            "'self'",
+            "blob:",
+            "data:",
+            "https://apachesuperset.gateway.scarf.sh",
+            "https://static.scarf.sh/",
+            # "https://avatars.slack-edge.com", # Uncomment when SLACK_ENABLE_AVATARS is True
+        ],
+        "worker-src": ["'self'", "blob:"],
+        "connect-src": [
+            "'self'",
+            "https://api.mapbox.com",
+            "https://events.mapbox.com",
+        ],
+        "object-src": "'none'",
+        "style-src": [
+            "'self'",
+            "'unsafe-inline'",
+        ],
+        "script-src": ["'self'", "'strict-dynamic'"],
+"frame-ancestors": ["*localhost:8088"],
+    },
+    "content_security_policy_nonce_in": ["script-src"],
+    "force_https": False,
+    "session_cookie_secure": False,
+
+}
+"""
+
+#https
+ENABLE_PROXY_FIX = True
