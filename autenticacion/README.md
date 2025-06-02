@@ -21,3 +21,5 @@ Gestiona la autenticación de usuarios para obtener tokens de acceso para embebe
     ```
 - **Respuesta**:
   - `token`: Token de acceso generado para el usuario, si tenía permisos suficientes.
+
+**Nota**: hay un ejemplo de cómo usar este guest token para embeber un panel usando un iframe en la carpeta `integracion_transparente`.
