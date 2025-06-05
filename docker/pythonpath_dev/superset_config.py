@@ -151,7 +151,7 @@ FAB_ADD_SECURITY_API = True
 ##### Fin de cambios necesarios para embeber paneles
 
 # produccion
-SECRET_KEY="80iyQjAC1f"
+SECRET_KEY="cambiame"
 
 #For logging
 SESSION_COOKIE_SECURE = False
