@@ -1,0 +1,23 @@
+meta {
+  name: login_request
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8088/api/v1/security/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {    "password": "admin",
+      "provider": "db",
+      "refresh": true,
+      "username": "admin"
+  }
+}
