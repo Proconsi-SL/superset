@@ -1,0 +1,6 @@
+{
+  "conexion_token": {
+    "username": "<USUARIO_DE_SERVICIO_SUPERSET>",
+    "password": "<PASSWORD_REAL>"
+  }
+}

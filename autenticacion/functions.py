@@ -11,12 +11,17 @@ Descripción
 @Aplicación		    : superset
 """
 
+import os
 import httpx
 from inputs import LoginRequest, GuestTokenRequest
 import json
 import requests
 
-BASE_URL = "http://superset_app:8088"  # Cambia esto por la URL real
+# Host interno de Superset dentro de la red Docker de Arsenio.
+# Parametrizable por entorno (SUPERSET_BASE_URL en el docker-compose) para no
+# depender del nombre del contenedor. Debe empezar por "http://" (mas abajo se
+# usa BASE_URL[7:] para construir la cabecera Host).
+BASE_URL = os.environ.get("SUPERSET_BASE_URL", "http://superset_pro-app:8088")
 
 with open("keys.json") as f:
     keys = json.load(f)

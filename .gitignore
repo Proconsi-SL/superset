@@ -122,3 +122,15 @@ docker/*local*
 # Jest test report
 test-report.html
 superset/static/stats/statistics.html
+
+# --- Proconsi dev/ (tooling de deploy Arsenio) ---
+# Se versiona SOLO dev/tools/ (scripts). Todo lo demas queda fuera del repo:
+#   dev/docs/        -> notas internas y hallazgos de seguridad (contienen secretos)
+#   dev/deployments/ -> artefactos .zip generados (binarios)
+#   dev/secrets/     -> credenciales reales para el build (keys.json real, etc.)
+dev/docs/
+dev/deployments/
+dev/secrets/
+
+# Config del MCP de Arsenio: contiene las keys mk_/uk_ del servidor. Nunca al repo.
+.mcp.json
